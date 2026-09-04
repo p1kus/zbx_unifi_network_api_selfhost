@@ -52,6 +52,21 @@ zabbix_export:
           history: '0'
           value_type: TEXT
           preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var response = JSON.parse(value);
+                  var override = '{$UNIFI_NETWORK_SITE_NAME_OVERRIDE}';
+
+                  if (
+                      override !== '' &&
+                      Array.isArray(response.data) &&
+                      response.data.length === 1
+                  ) {
+                      response.data[0].name = override;
+                  }
+
+                  return JSON.stringify(response)
             - type: JSONPATH
               parameters:
                 - $.data
@@ -112,6 +127,8 @@ zabbix_export:
           description: 'UniFi Network API Address or Dns Name'
         - macro: '{$UNIFI_NETWORK_API_KEY}'
           description: 'UniFi Network API Key'
+        - macro: '{$UNIFI_NETWORK_SITE_NAME_OVERRIDE}'
+          description: 'Optional display name override for a single UniFi site.'
     - uuid: a260fd3865014482a08fa362e5da666c
       template: 'UniFi Network API - Client'
       name: 'UniFi Network API - Client'
